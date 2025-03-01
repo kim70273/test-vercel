@@ -10,7 +10,7 @@ function App() {
   const { data } = useSimpleApi();
 
   console.log(data);
-
+  // OZ4FHwHoAQlmEdv3X4eBfg60
   return (
     <>
       <div>

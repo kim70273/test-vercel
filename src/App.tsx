@@ -10,10 +10,11 @@ function App() {
   const { data } = useSimpleApi();
 
   console.log(data);
-  // OZ4FHwHoAQlmEdv3X4eBfg60
+
   return (
     <>
       <div>
+        1231231
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
         </a>

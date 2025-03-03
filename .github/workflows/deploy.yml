@@ -13,11 +13,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install PNPM
-        run: npm install -g pnpm
+      - uses: pnpm/actions-setup@v4
+        name: Install PNPM
+        with:
+          run_install: false
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build project
         run: pnpm build

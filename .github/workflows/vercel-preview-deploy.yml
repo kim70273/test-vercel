@@ -10,7 +10,7 @@ on:
       - "staging"
 
 jobs:
-  Deploy-Preview:
+  Build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -27,13 +27,42 @@ jobs:
       - name: Install Vercel CLI
         run: pnpm install --global vercel@latest
 
+      - name: Build Project
+        run: pnpm build
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist
+          retention-days: 1
+
+  Deploy:
+    runs-on: ubuntu-latest
+    needs: Build
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        name: Install PNPM
+        with:
+          run_install: false
+
+      - name: Install Vercel CLI
+        run: pnpm install --global vercel@latest
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist
+
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=preview --token=${{secrets.VERCEL_TOKEN}}
 
-      - name: Build Project Artifacts
-        run: vercel build --token=${{secrets.VERCEL_TOKEN}}
-
-      - name: Assign beta domain
+      - name: Deploy to Vercel
         run: |
           vercel deploy --prebuilt --token=${{secrets.VERCEL_TOKEN}} > domain.txt
           vercel alias set `cat domain.txt` staging-test-vercel-livid-beta-17.vercel.app --scope ${{secrets.VERCEL_ORG_ID}} --token ${{secrets.VERCEL_TOKEN}}

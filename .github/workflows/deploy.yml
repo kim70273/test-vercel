@@ -35,3 +35,19 @@ jobs:
         env:
           VERCEL_ORG_ID: ${{secrets.VERCEL_ORG_ID}}
           VERCEL_PROJECT_ID: ${{secrets.VERCEL_PROJECT_ID}}
+
+      - name: Check for Markdown File Changes
+        id: check_md
+        run: |
+          if git diff --name-only HEAD^ HEAD | grep -q '\.md$'; then
+            echo "md_changed=true" >> $GITHUB_ENV
+          else
+            echo "md_changed=false" >> $GITHUB_ENV
+          fi
+
+      - name: Send Slack Notification
+        if: env.md_changed == 'true'
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{
+            "text": "📢 새로운 Markdown 파일이 추가되었습니다!\n🔗 <https://github.com/${{ github.repository }}/commit/${{ github.sha }}|커밋 확인하기>"
+          }' ${{ secrets.SLACK_WEBHOOK_URL }}

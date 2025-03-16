@@ -22,7 +22,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build project
-        run: pnpm build
+        run: vercel build --token=${{secrets.VERCEL_TOKEN}}
 
       - name: Deploy to Vercel
         run: npx vercel --token ${{secrets.VERCEL_TOKEN}} --prod

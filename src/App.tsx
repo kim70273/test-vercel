@@ -9,7 +9,7 @@ function App() {
 
   const { data } = useSimpleApi();
 
-  console.log(data);
+  console.log(data, "data");
 
   // push 해도 vercel에 자동 배포 되지 않는지 테스트
 

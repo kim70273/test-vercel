@@ -6,8 +6,8 @@ on:
     - cron: "0 9 * * 4" # 목요일 오전 9시
 
 env:
-  VERCEL_ORG_ID: ${{ secrets.NEXT_VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.NEXT_VERCEL_PROJECT_ID_NEXT_TEST }}
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_NEXT_TEST }}
 
 jobs:
   Build:
@@ -33,10 +33,10 @@ jobs:
         run: pnpm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.NEXT_VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project
-        run: vercel build --token=${{ secrets.NEXT_VERCEL_TOKEN }}
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -71,9 +71,9 @@ jobs:
           path: app/next-test/.vercel/output
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.NEXT_VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to Vercel
         run: |
-          vercel deploy --prebuilt --token=${{ secrets.NEXT_VERCEL_TOKEN }} > domain.txt
-          vercel alias set `cat domain.txt` your-next-test-staging.vercel.app --scope ${{ secrets.NEXT_VERCEL_ORG_ID }} --token ${{ secrets.NEXT_VERCEL_TOKEN }}
+          vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} > domain.txt
+          vercel alias set `cat domain.txt` your-next-test-staging.vercel.app --scope ${{ secrets.VERCEL_ORG_ID }} --token ${{ secrets.VERCEL_TOKEN }}

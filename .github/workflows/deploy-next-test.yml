@@ -1,0 +1,42 @@
+name: Deploy to Vercel (Next Test)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/next-test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: pnpm/action-setup@v4
+        name: Install PNPM
+        with:
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Vercel CLI
+        run: pnpm install --global vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.NEXT_VERCEL_TOKEN }}
+
+      - name: Build Project
+        run: vercel build --prod --token=${{ secrets.NEXT_VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel
+        run: npx vercel --prebuilt --prod --token=${{ secrets.NEXT_VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.NEXT_VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.NEXT_VERCEL_PROJECT_ID_NEXT_TEST }}

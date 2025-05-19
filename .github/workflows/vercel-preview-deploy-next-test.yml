@@ -12,9 +12,6 @@ env:
 jobs:
   Build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app/next-test
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

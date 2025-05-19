@@ -1,0 +1,79 @@
+name: Vercel Preview Deployment (Next Test)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 9 * * 4" # 목요일 오전 9시
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.NEXT_VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.NEXT_VERCEL_PROJECT_ID_NEXT_TEST }}
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/next-test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: staging
+
+      - uses: pnpm/action-setup@v4
+        name: Install PNPM
+        with:
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Vercel CLI
+        run: pnpm install --global vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=preview --token=${{ secrets.NEXT_VERCEL_TOKEN }}
+
+      - name: Build Project
+        run: vercel build --token=${{ secrets.NEXT_VERCEL_TOKEN }}
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-test-build
+          path: app/next-test/.vercel/output
+          retention-days: 1
+
+  Deploy:
+    runs-on: ubuntu-latest
+    needs: Build
+    environment:
+      name: Preview
+      url: https://staging-next-test-cvyal6zxd-kim70273s-projects.vercel.app
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        name: Install PNPM
+        with:
+          run_install: false
+
+      - name: Install Vercel CLI
+        run: pnpm install --global vercel@latest
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: next-test-build
+          path: app/next-test/.vercel/output
+
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=preview --token=${{ secrets.NEXT_VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel
+        run: |
+          vercel deploy --prebuilt --token=${{ secrets.NEXT_VERCEL_TOKEN }} > domain.txt
+          vercel alias set `cat domain.txt` your-next-test-staging.vercel.app --scope ${{ secrets.NEXT_VERCEL_ORG_ID }} --token ${{ secrets.NEXT_VERCEL_TOKEN }}

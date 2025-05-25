@@ -41,7 +41,6 @@ jobs:
           name: next-test-build
           path: app/next-test/.vercel/output
           retention-days: 1
-          working-directory: app/next-test
 
   Deploy:
     runs-on: ubuntu-latest

@@ -47,7 +47,7 @@ jobs:
     needs: Build
     environment:
       name: Preview
-      url: https://staging-next-test-cvyal6zxd-kim70273s-projects.vercel.app
+      url: https://staging-next-test-six-theta-58.vercel.app
 
     steps:
       - name: Checkout repository
@@ -73,4 +73,4 @@ jobs:
       - name: Deploy to Vercel
         run: |
           vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} > domain.txt
-          vercel alias set `cat domain.txt` staging-next-test-cvyal6zxd-kim70273s-projects.vercel.app --scope ${{ secrets.VERCEL_ORG_ID }} --token ${{ secrets.VERCEL_TOKEN }}
+          vercel alias set `cat domain.txt` staging-next-test-six-theta-58.vercel.app --scope ${{ secrets.VERCEL_ORG_ID }} --token ${{ secrets.VERCEL_TOKEN }}

@@ -18,16 +18,23 @@ jobs:
         with:
           ref: staging
 
-      - uses: pnpm/action-setup@v4
-        name: Install PNPM
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
+          node-version: "20" # Next.js에 맞는 Node.js 버전 지정
+
+      - name: Install PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8 # PNPM 버전 지정
           run_install: false
 
       - name: Install dependencies
+        working-directory: app/next-test
         run: pnpm install --frozen-lockfile
 
       - name: Install Vercel CLI
-        run: pnpm install --global vercel@latest
+        run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
         working-directory: app/next-test
@@ -49,19 +56,20 @@ jobs:
     needs: Build
     environment:
       name: Preview
-      url: https://staging-next-test-six-theta-58.vercel.app
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        name: Install PNPM
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
+          node-version: "20" # Build 작업과 동일한 Node.js 버전
+
+      - name: Install PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
           run_install: false
 
       - name: Install Vercel CLI
-        run: pnpm install --global vercel@latest
+        run: npm install --global vercel@latest
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
@@ -69,12 +77,14 @@ jobs:
           name: next-test-build
           path: app/next-test/.vercel/output
 
-      - name: Pull Vercel Environment Information
-        working-directory: app/next-test
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-
       - name: Deploy to Vercel
         working-directory: app/next-test
+        id: deploy
         run: |
-          vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} > domain.txt
-          vercel alias set `cat domain.txt` staging-next-test-six-theta-58.vercel.app --scope ${{ secrets.VERCEL_ORG_ID }} --token ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          vercel alias set "$DEPLOYMENT_URL" staging-next-test-six-theta-58.vercel.app --scope ${{ secrets.VERCEL_ORG_ID }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Set Environment URL
+        run: |
+          echo "Deployment URL: ${{ steps.deploy.outputs.DEPLOYMENT_URL }}"

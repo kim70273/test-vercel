@@ -1,5 +1,9 @@
 {
-  "buildCommand": "pnpm build",
-  "outputDirectory": ".vercel/output",
-  "framework": "nextjs"
+  "project": "${{ secrets.VERCEL_PROJECT_ID_NEXT_TEST }}",
+  "builds": [
+    {
+      "src": "./",
+      "use": "@vercel/next"
+    }
+  ]
 }

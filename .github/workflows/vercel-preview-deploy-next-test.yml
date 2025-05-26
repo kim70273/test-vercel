@@ -21,13 +21,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20" # Next.js에 맞는 Node.js 버전 지정
+          node-version: "20" # Next.js에 맞는 Node.js 버전
 
       - name: Install PNPM
         uses: pnpm/action-setup@v4
         with:
-          version: 8 # PNPM 버전 지정
           run_install: false
+          package_json_file: app/next-test/package.json # package.json 경로 명시
+          standalone: false
 
       - name: Install dependencies
         working-directory: app/next-test
@@ -60,13 +61,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20" # Build 작업과 동일한 Node.js 버전
+          node-version: "20"
 
       - name: Install PNPM
         uses: pnpm/action-setup@v4
         with:
-          version: 8
           run_install: false
+          package_json_file: app/next-test/package.json # package.json 경로 명시
+          standalone: false
 
       - name: Install Vercel CLI
         run: npm install --global vercel@latest

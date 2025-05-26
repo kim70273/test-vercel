@@ -30,16 +30,18 @@ jobs:
         run: pnpm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
+        working-directory: app/next-test
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project
+        working-directory: app/next-test
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: next-test-build
-          path: .vercel/output
+          path: app/next-test/.vercel/output
           retention-days: 1
 
   Deploy:
@@ -72,6 +74,7 @@ jobs:
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to Vercel
+        working-directory: app/next-test
         run: |
           vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} > domain.txt
           vercel alias set `cat domain.txt` staging-next-test-six-theta-58.vercel.app --scope ${{ secrets.VERCEL_ORG_ID }} --token ${{ secrets.VERCEL_TOKEN }}

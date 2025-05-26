@@ -3,7 +3,7 @@ name: Vercel Preview Deployment (Next Test)
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 9 * * 4" # 목요일 오전 9시
+    - cron: "0 9 * * 4" # 목요일 오전 9시 KST (UTC 0시)
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -18,28 +18,45 @@ jobs:
         with:
           ref: staging
 
-      - uses: pnpm/action-setup@v4
-        name: Install PNPM
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20" # Next.js와 호환되는 Node.js 버전
+
+      - name: Install PNPM
+        uses: pnpm/action-setup@v4
         with:
           run_install: false
+          package_json_file: app/next-test/package.json # app/next-test의 package.json 참조
+          standalone: false
 
       - name: Install dependencies
+        working-directory: app/next-test
         run: pnpm install --frozen-lockfile
 
       - name: Install Vercel CLI
-        run: pnpm install --global vercel@latest
+        run: npm install --global vercel@latest
+
+      - name: Create vercel.json (if needed)
+        working-directory: app/next-test
+        run: |
+          if [ ! -f vercel.json ]; then
+            echo '{"project": "${{ secrets.VERCEL_PROJECT_ID_NEXT_TEST }}", "builds": [{"src": "./", "use": "@vercel/next"}]}' > vercel.json
+          fi
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: app/next-test
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }} --project=${{ secrets.VERCEL_PROJECT_ID_NEXT_TEST }}
 
       - name: Build Project
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: app/next-test
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }} --project=${{ secrets.VERCEL_PROJECT_ID_NEXT_TEST }}
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: next-test-build
-          path: .vercel/output
+          path: app/next-test/.vercel/output
           retention-days: 1
 
   Deploy:
@@ -47,30 +64,36 @@ jobs:
     needs: Build
     environment:
       name: Preview
-      url: https://staging-next-test-six-theta-58.vercel.app
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
-      - uses: pnpm/action-setup@v4
-        name: Install PNPM
+      - name: Install PNPM
+        uses: pnpm/action-setup@v4
         with:
           run_install: false
+          package_json_file: app/next-test/package.json
+          standalone: false
 
       - name: Install Vercel CLI
-        run: pnpm install --global vercel@latest
+        run: npm install --global vercel@latest
 
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
           name: next-test-build
-          path: .vercel/output
-
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          path: app/next-test/.vercel/output
 
       - name: Deploy to Vercel
+        working-directory: app/next-test
+        id: deploy
         run: |
-          vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} > domain.txt
-          vercel alias set `cat domain.txt` staging-next-test-six-theta-58.vercel.app --scope ${{ secrets.VERCEL_ORG_ID }} --token ${{ secrets.VERCEL_TOKEN }}
+          DEPLOYMENT_URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} --project=${{ secrets.VERCEL_PROJECT_ID_NEXT_TEST }})
+          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          vercel alias set "$DEPLOYMENT_URL" staging-next-test-six-theta-58.vercel.app --scope ${{ secrets.VERCEL_ORG_ID }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Set Environment URL
+        run: |
+          echo "Deployment URL: ${{ steps.deploy.outputs.DEPLOYMENT_URL }}"

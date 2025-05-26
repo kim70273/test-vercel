@@ -68,9 +68,11 @@ jobs:
           path: app/next-test/.vercel/output
 
       - name: Pull Vercel Environment Information
+        working-directory: app/next-test
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to Vercel
+        working-directory: app/next-test
         run: |
           vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} > domain.txt
           vercel alias set `cat domain.txt` staging-next-test-six-theta-58.vercel.app --scope ${{ secrets.VERCEL_ORG_ID }} --token ${{ secrets.VERCEL_TOKEN }}
